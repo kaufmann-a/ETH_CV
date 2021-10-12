@@ -27,8 +27,8 @@ if __name__ == '__main__':
     )
 
     # Create the network.
-    # net = MLPClassifier()
-    net = ConvClassifier()
+    net = MLPClassifier()
+    # net = ConvClassifier()
 
     # Load best checkpoint.
     net.load_state_dict(torch.load(f'best-{net.codename}.pth')['net'])
@@ -40,8 +40,12 @@ if __name__ == '__main__':
 
     # Based on run_validation_epoch, write code for computing the 10x10 confusion matrix.
     confusion_matrix = np.zeros([10, 10])
-    raise NotImplementedError()
-    
+    for batch in valid_dataloader:
+        output = net(batch['input'])
+        for idx, item in enumerate(output):
+            predicted_nr = torch.argmax(item)
+            confusion_matrix[batch['annotation'][idx]][predicted_nr] += 1
+
     # Plot the confusion_matrix.
     plt.figure(figsize=[5, 5])
     plt.imshow(confusion_matrix)

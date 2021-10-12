@@ -12,9 +12,10 @@ class MLPClassifier(nn.Module):
         # Input is 28 * 28.
         # Output is 10 values (one per class).
         # Multiple linear layers each followed by a ReLU non-linearity (apart from the last).
-        raise  NotImplementedError()
         self.layers = nn.Sequential(
-            # TODO
+            nn.Linear(784, 32),
+            nn.ReLU(),
+            nn.Linear(32, 10)
         )
     
     def forward(self, batch):
@@ -36,15 +37,21 @@ class ConvClassifier(nn.Module):
         # Input is 28x28, with one channel.
         # Multiple Conv2d and MaxPool2d layers each followed by a ReLU non-linearity (apart from the last).
         # Needs to end with AdaptiveMaxPool2d(1) to reduce everything to a 1x1 image.
-        raise NotImplementedError()
         self.layers = nn.Sequential(
+            nn.Conv2d(in_channels=1, out_channels=8, kernel_size=(3, 3)),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=(2, 2), stride=2),
+            nn.Conv2d(in_channels=8, out_channels=16, kernel_size=(3, 3)),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=(2, 2), stride=2),
+            nn.Conv2d(in_channels=16, out_channels=32, kernel_size=(3, 3)),
+            nn.ReLU(),
             nn.AdaptiveMaxPool2d(1)
-            # TODO
         )
         # Linear classification layer.
         # Output is 10 values (one per class).
         self.classifier = nn.Sequential(
-            # TODO
+            nn.Linear(in_features=32, out_features=10)
         )
     
     def forward(self, batch):
