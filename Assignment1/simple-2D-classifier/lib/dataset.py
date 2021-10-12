@@ -68,5 +68,5 @@ class Simple2DTransformDataset(Dataset):
 
 
 def transform(sample):
-    new_sample = np.array([sample[0], sample[0]**2+sample[1]**2])
+    new_sample = np.array([sample[1]/sample[0], sample[0]**2+sample[1]**2])
     return new_sample
