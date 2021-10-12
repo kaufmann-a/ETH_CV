@@ -69,4 +69,6 @@ class Simple2DTransformDataset(Dataset):
 
 def transform(sample):
     new_sample = np.array([sample[1]/sample[0], sample[0]**2+sample[1]**2])
+    # I didn't calculate exact polar form (didn't take sqareroot and tangens as Assignment says do not modify existing
+    # Code. To do this calculations, I would have had to import math library.
     return new_sample
