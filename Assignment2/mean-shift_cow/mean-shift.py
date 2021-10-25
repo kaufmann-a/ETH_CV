@@ -14,10 +14,11 @@ def distance(x, X):
 
 
 def distance_batch(x, X):
-    raise NotImplementedError('distance_batch function not implemented!')
+    res = np.empty(shape=(0, len(X)))
+    for x_ in x:
+        res = np.append(res, [[np.linalg.norm(x_ - cur_x) for cur_x in X]], axis=0)
+    return res
 
-def gauss_kernel(x):
-    return (1 / (math.sqrt(2 * math.pi))) * np.exp(-0.5 * x**2)
 
 def gaussian(dist, bandwidth):
     res = np.exp(-0.5 * (dist/bandwidth)**2)
@@ -30,7 +31,12 @@ def update_point(weight, X):
 
 
 def update_point_batch(weight, X):
-    raise NotImplementedError('update_point_batch function not implemented!')
+    res = []
+    for weight_ in weight:
+        weighted_sum = sum([w*x for w, x in zip(weight_, X)])
+        avg = weighted_sum / sum(weight_)
+        res.append(avg)
+    return torch.stack(res)
 
 
 def meanshift_step(X, bandwidth=2.5):
@@ -43,13 +49,22 @@ def meanshift_step(X, bandwidth=2.5):
 
 
 def meanshift_step_batch(X, bandwidth=2.5):
-    raise NotImplementedError('meanshift_step_batch function not implemented!')
-
+    X_ = X.clone()
+    nr_batches = 10
+    nr_datapoints_batch = math.ceil(len(X_) / nr_batches)
+    for i in  range(nr_batches):
+        dist = distance_batch(X_[i*nr_datapoints_batch:(i+1)*nr_datapoints_batch], X)
+        weight = gaussian(dist, bandwidth)
+        X_[i * nr_datapoints_batch:(i + 1) * nr_datapoints_batch] = update_point_batch(weight, X_)
+    return X_
 
 def meanshift(X):
     X = X.clone()
+    counter = 0
     for _ in range(20):
         X = meanshift_step(X)   # slow implementation
+        print("Iteration " + str(counter) + " done")
+        counter += 1
         # X = meanshift_step_batch(X)   # fast implementation
     return X
 
