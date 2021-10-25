@@ -9,21 +9,24 @@ import numpy as np
 from skimage import io, color
 from skimage.transform import rescale
 
-
 def distance(x, X):
-    raise NotImplementedError('distance function not implemented!')
+    return np.array([np.linalg.norm(x - cur_x) for cur_x in X])
 
 
 def distance_batch(x, X):
     raise NotImplementedError('distance_batch function not implemented!')
 
+def gauss_kernel(x):
+    return (1 / (math.sqrt(2 * math.pi))) * np.exp(-0.5 * x**2)
 
 def gaussian(dist, bandwidth):
-    raise NotImplementedError('gaussian function not implemented!')
-
+    res = np.exp(-0.5 * (dist/bandwidth)**2)
+    return res
 
 def update_point(weight, X):
-    raise NotImplementedError('update_point function not implemented!')
+    weighted_sum = sum([w * x for w, x in zip(weight, X)])
+    avg = weighted_sum / sum(weight)
+    return avg
 
 
 def update_point_batch(weight, X):
