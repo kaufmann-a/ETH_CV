@@ -14,10 +14,7 @@ def distance(x, X):
 
 
 def distance_batch(x, X):
-    res = np.empty(shape=(0, len(X)))
-    for x_ in x:
-        res = np.append(res, [[np.linalg.norm(x_ - cur_x) for cur_x in X]], axis=0)
-    return res
+    return torch.cdist(x, X)
 
 
 def gaussian(dist, bandwidth):
@@ -31,12 +28,7 @@ def update_point(weight, X):
 
 
 def update_point_batch(weight, X):
-    res = []
-    for weight_ in weight:
-        weighted_sum = sum([w*x for w, x in zip(weight_, X)])
-        avg = weighted_sum / sum(weight_)
-        res.append(avg)
-    return torch.stack(res)
+    return torch.einsum('ij,ki->kj', X, weight) / weight.sum(dim=1).unsqueeze(1)
 
 
 def meanshift_step(X, bandwidth=2.5):
@@ -50,7 +42,7 @@ def meanshift_step(X, bandwidth=2.5):
 
 def meanshift_step_batch(X, bandwidth=2.5):
     X_ = X.clone()
-    nr_batches = 10
+    nr_batches = 1
     nr_datapoints_batch = math.ceil(len(X_) / nr_batches)
     for i in  range(nr_batches):
         dist = distance_batch(X_[i*nr_datapoints_batch:(i+1)*nr_datapoints_batch], X)
