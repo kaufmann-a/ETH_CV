@@ -62,10 +62,10 @@ def meanshift(X):
     X = X.clone()
     counter = 0
     for _ in range(20):
-        X = meanshift_step(X)   # slow implementation
+        # X = meanshift_step(X)   # slow implementation
+        X = meanshift_step_batch(X)   # fast implementation
         print("Iteration " + str(counter) + " done")
         counter += 1
-        # X = meanshift_step_batch(X)   # fast implementation
     return X
 
 
