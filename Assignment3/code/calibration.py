@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from impl.vis import Plot2DPoints, PlotProjectedPoints, Plot3DPoints, PlotCamera
-# from impl.calib.geometry import NormalizePoints2D, NormalizePoints3D, EstimateProjectionMatrix, DecomposeP
+from impl.calib.geometry import NormalizePoints2D, NormalizePoints3D, EstimateProjectionMatrix, DecomposeP
 from impl.calib.io import ReadPoints2D, ReadPoints3D, ReadImageSize
 from impl.calib.opt import ImageResiduals, OptimizeProjectionMatrix
 
@@ -30,37 +30,41 @@ def main():
 
   # TODO
   # Normalize 2D and 3D points
-  normalized_points2D, T2D =
-  normalized_points3D, T3D =
+  normalized_points2D, T2D = NormalizePoints2D(points2D, image_size)
+  normalized_points3D, T3D = NormalizePoints3D(points3D)
   
   # TODO
   # Estimate the projection matrix from normalized correspondences
-  # P_hat = EstimateProjectionMatrix(normalized_points2D, normalized_points3D)
+  P_hat = EstimateProjectionMatrix(normalized_points2D, normalized_points3D)
 
   # TODO
   # Optimize based on reprojection error
-  # P_hat_opt = OptimizeProjectionMatrix(P_hat, normalized_points2D, normalized_points3D)
+  P_hat_opt = OptimizeProjectionMatrix(P_hat, normalized_points2D, normalized_points3D)
 
-  # print(f'Reprojection error after optimization: {np.linalg.norm(ImageResiduals(P_hat_opt, normalized_points2D, normalized_points3D))**2}')
+  print(f'Reprojection error after optimization: {np.linalg.norm(ImageResiduals(P_hat_opt, normalized_points2D, normalized_points3D))**2}')
 
   # TODO
   # Denormalize P
-  # P =
+  P = np.linalg.inv(T2D) @ P_hat_opt @ T3D
 
   # TODO
   # Decompose P
-  # K, R, t = DecomposeP(P)
+  K, R, t = DecomposeP(P)
 
   # Print the estimated values
-  # print(f'K=\n{K/K[2,2]}')
-  # print(f'R =\n{R}')
-  # print(f't = {t.transpose()}')
+  print(f'K=\n{K/K[2,2]}')
+  print(f'R =\n{R}')
+  print(f't = {t.transpose()}')
 
   # Visualize
-  # PlotCamera(R, t, ax3d, 0.5)
-  # PlotProjectedPoints(points3D, points2D, K, R, t, image_size, ax2d)
+  fig_2 = plt.figure()
+  ax3d_2 = fig_2.add_subplot(121, projection='3d')
+  ax2d_2 = fig_2.add_subplot(122)
+  PlotCamera(R, t, ax3d_2, 0.5)
+  PlotProjectedPoints(points3D, points2D, K, R, t, image_size, ax2d_2)
 
   # Make sure the plots are shown before the program terminates
+
   plt.show()
 
 if __name__ == "__main__":

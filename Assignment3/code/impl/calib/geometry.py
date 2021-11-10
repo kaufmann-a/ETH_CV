@@ -41,7 +41,7 @@ def NormalizePoints2D(points, image_size):
 def EstimateProjectionMatrix(points2D, points3D):
   
   # TODO Build constraint matrix
-  # Hint: Pay attention to the assumed order of the vectorized P matrix. You will need the same order when rehaping the vector to the matrix later
+  # Hint: Pay attention to the assumed order of the vectorized P matrix. You will need the same order when reshaping the vector to the matrix later
   constraint_matrix = BuildProjectionConstraintMatrix(points2D, points3D)
 
   # Solve for the nullspace
@@ -49,12 +49,12 @@ def EstimateProjectionMatrix(points2D, points3D):
   P_vec = vh[-1,:]
 
   # TODO: Reshape the vector to a matrix (pay attention to the order)
-  P = 
-
+  P = np.reshape(P_vec, (3, 4))
   return P
 
 
 def DecomposeP(P):
+
   # TODO
   # Decompose P into K, R, and t
 
@@ -62,24 +62,31 @@ def DecomposeP(P):
   # We could decompose KR with a RQ decomposition since K is upper triangular and R is orthogonal
   # To switch this around we set M = KR -> M^(-1) = R^(-1) K^(-1) and can use the QR decomposition on M^(-1)
 
+  M_inv = np.linalg.inv(P[:,:-1])
+  q, r = np.linalg.qr(M_inv)
   # TODO
   # Find K and R
-  K =
-  R =
-
+  K = np.linalg.inv(r)
+  R = np.linalg.inv(q)
+  # np.diag(np.sign(np.diagonal(K)))
 
   # TODO
   # It is possible that a sign was assigned to the wrong matrix during decomposition
   # We need to make sure that det(R) = 1 to have a proper rotation
   # We also want K to have a positive diagonal
+  if np.linalg.det(R) < 0:
+    R = -R
+  T = np.diag(np.sign(np.diagonal(K)))
+  K = K @ T
+  R = T @ R
 
 
   # TODO
-  # Find the camera center C as the nullspace of P
-  C = 
+  # Find the camera center C as the nullspace of
+  C = - M_inv @ P[:, -1]
 
   # TODO
   # Compute t from R and C
-  t = 
+  t = - K @ R @ C
 
   return K, R, t

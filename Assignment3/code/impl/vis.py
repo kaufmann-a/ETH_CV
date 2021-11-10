@@ -8,7 +8,7 @@ def Plot3DPoints(points, ax=None):
   ax.plot(xs=points[:,0], ys=points[:,1], zs=points[:,2], color='k', marker='.', linestyle='None')
   ax.set_title('3D Scene')
   
-  plt.show(block=False)
+  # plt.show(block=False)
 
   return ax
   
@@ -44,7 +44,7 @@ def PlotCamera(R, t, ax=None, scale=1.0, color='b'):
 
   ax.plot(xs=cam_points_world[:,0], ys=cam_points_world[:,1], zs=cam_points_world[:,2], color=color)
 
-  plt.show(block=False)
+  # plt.show(block=False)
 
   return ax
 
@@ -66,7 +66,7 @@ def Plot2DPoints(points, image_size, ax=None):
   ax.axis('equal')
   ax.set_title('Image')
 
-  plt.show(block=False)
+  # plt.show(block=False)
 
 
 def PlotProjectedPoints(points3D, points2D, K, R, t, image_size, ax=None):
@@ -75,7 +75,7 @@ def PlotProjectedPoints(points3D, points2D, K, R, t, image_size, ax=None):
     ax = fig.add_subplot(111)
 
   # Project points onto image
-  p2d = K @ ((R @ points3D.transpose()) + t)
+  p2d = K @ ((R @ points3D.transpose()).T + t).T
   p2d = p2d[0:2, :] / p2d[[-1],:]
 
   ax.plot(p2d[0,:], image_size[1] - p2d[1,:], 'r.')
@@ -83,4 +83,4 @@ def PlotProjectedPoints(points3D, points2D, K, R, t, image_size, ax=None):
   for i in range(num_points):
     ax.plot([p2d[0,i], points2D[i,0]], [image_size[1] - p2d[1,i], image_size[1] - points2D[i,1]], color='g')
 
-  plt.show(block=False)
+  # plt.show(block=False)
