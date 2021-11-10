@@ -26,7 +26,7 @@ def main():
   ax2d = fig.add_subplot(122)
   Plot3DPoints(points3D, ax3d)
   Plot2DPoints(points2D, image_size, ax2d)
-  plt.show(block=False)
+  #plt.show(block=False)
 
   # TODO
   # Normalize 2D and 3D points
@@ -57,11 +57,8 @@ def main():
   print(f't = {t.transpose()}')
 
   # Visualize
-  fig_2 = plt.figure()
-  ax3d_2 = fig_2.add_subplot(121, projection='3d')
-  ax2d_2 = fig_2.add_subplot(122)
-  PlotCamera(R, t, ax3d_2, 0.5)
-  PlotProjectedPoints(points3D, points2D, K, R, t, image_size, ax2d_2)
+  PlotCamera(R, t, ax3d, 0.5)
+  PlotProjectedPoints(points3D, points2D, K, R, t, image_size, ax2d)
 
   # Make sure the plots are shown before the program terminates
 

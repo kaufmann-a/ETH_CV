@@ -66,9 +66,9 @@ def DecomposeP(P):
   q, r = np.linalg.qr(M_inv)
   # TODO
   # Find K and R
-  K = np.linalg.inv(r)
   R = np.linalg.inv(q)
-  # np.diag(np.sign(np.diagonal(K)))
+  K = np.linalg.inv(r)
+
 
   # TODO
   # It is possible that a sign was assigned to the wrong matrix during decomposition
@@ -80,13 +80,12 @@ def DecomposeP(P):
   K = K @ T
   R = T @ R
 
-
   # TODO
-  # Find the camera center C as the nullspace of
+  # Find the camera center C as the nullspace of P
   C = - M_inv @ P[:, -1]
 
   # TODO
   # Compute t from R and C
-  t = - K @ R @ C
+  t = - R @ C
 
   return K, R, t

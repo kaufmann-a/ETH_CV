@@ -11,7 +11,7 @@ def ReprojectionError(P, point3D, point2D):
     proj_homogenous = P @ np.concatenate((point3D, [1]))
     proj_euclid = np.array([proj_homogenous[0]/proj_homogenous[2], proj_homogenous[1]/proj_homogenous[2]])
     diff = point2D-proj_euclid
-    return np.dot(diff, diff)
+    return diff
 
 # Compute the residuals for all correspondences of the image
 def ImageResiduals(P, points2D, points3D):
