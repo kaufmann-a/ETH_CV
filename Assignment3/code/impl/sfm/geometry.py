@@ -15,8 +15,10 @@ def EstimateEssentialMatrix(K, im1, im2, matches):
   # Normalize coordinates (to points on the normalized image plane)
 
   # These are the keypoints on the normalized image plane (not to be confused with the normalization in the calibration exercise)
-  normalized_kps1 = 
-  normalized_kps2 = 
+  K_inv = np.linalg.inv(K)
+
+  normalized_kps1 = K_inv @ np.hstack((im1.kps, np.ones((im1.kps.shape[0], 1)))).T
+  normalized_kps2 = K_inv @ np.hstack((im2.kps, np.ones((im2.kps.shape[0], 1)))).T
 
   # TODO
   # Assemble constraint matrix
@@ -25,29 +27,35 @@ def EstimateEssentialMatrix(K, im1, im2, matches):
   for i in range(matches.shape[0]):
     # TODO
     # Add the constraints
+    p_im1 = normalized_kps1[:, matches[i][0]]
+    p_im2 = normalized_kps2[:, matches[i][1]]
+    cur_constraint = np.array([p_im2[0]*p_im1[0], p_im2[1]*p_im1[0], p_im2[2]*p_im1[0],
+                               p_im2[0]*p_im1[1], p_im2[1]*p_im1[1], p_im2[2]*p_im1[1],
+                               p_im2[0]*p_im1[2], p_im2[1]*p_im1[2], p_im2[2]*p_im1[2]])
+    constraint_matrix[i] = cur_constraint
 
-  
   # Solve for the nullspace of the constraint matrix
   _, _, vh = np.linalg.svd(constraint_matrix)
   vectorized_E_hat = vh[-1,:]
 
   # TODO
   # Reshape the vectorized matrix to it's proper shape again
-  E_hat = 
+  E_hat = np.reshape(vectorized_E_hat, (3, 3))
 
   # TODO
   # We need to fulfill the internal constraints of E
   # The first two singular values need to be equal, the third one zero.
   # Since E is up to scale, we can choose the two equal singluar values arbitrarily
-  E = 
+  U_, D_, V_ = np.linalg.svd(E_hat)
+  SingularValues = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 0]])
+  E = U_ @ np.diag(D_) @ SingularValues @ V_
 
   # This is just a quick test that should tell you if your estimated matrix is not correct
   # It might fail if you estimated E in the other direction (i.e. kp2' * E * kp1)
   # You can adapt it to your assumptions.
   for i in range(matches.shape[0]):
-    kp1 = normalized_kps1[matches[i,0],:]
-    kp2 = normalized_kps2[matches[i,1],:]
-
+    kp1 = normalized_kps1[:, matches[i,0]]
+    kp2 = normalized_kps2[:, matches[i,1]]
     assert(abs(kp1.transpose() @ E @ kp2) < 0.01)
 
   return E
@@ -134,9 +142,9 @@ def TriangulatePoints(K, im1, im2, matches):
   # TODO
   # Filter points behind the cameras by transforming them into each camera space and checking the depth (Z)
   # Make sure to also remove the corresponding rows in `im1_corrs` and `im2_corrs`
-  points3D = 
-  im1_corrs = 
-  im2_corrs =
+  # points3D =
+  # im1_corrs =
+  # im2_corrs =
 
   return points3D, im1_corrs, im2_corrs
 
@@ -146,32 +154,33 @@ def EstimateImagePose(points2D, points3D, K):
   # We use points in the normalized image plane.
   # This removes the 'K' factor from the projection matrix.
   # We don't normalize the 3D points here to keep the code simpler.
-  normalized_points2D = 
+  # normalized_points2D =
 
-  constraint_matrix = BuildProjectionConstraintMatrix(normalized_points2D, points3D)
+  # constraint_matrix = BuildProjectionConstraintMatrix(normalized_points2D, points3D)
 
   # We don't use optimization here since we would need to make sure to only optimize on the se(3) manifold
   # (the manifold of proper 3D poses). This is a bit too complicated right now.
   # Just DLT should give good enough results for this dataset.
 
   # Solve for the nullspace
-  _, _, vh = np.linalg.svd(constraint_matrix)
-  P_vec = vh[-1,:]
-  P = np.reshape(P_vec, (3, 4), order='C')
+  # _, _, vh = np.linalg.svd(constraint_matrix)
+  # P_vec = vh[-1,:]
+  # P = np.reshape(P_vec, (3, 4), order='C')
 
   # Make sure we have a proper rotation
-  u, s, vh = np.linalg.svd(P[:,:3])
-  R = u @ vh
+  # u, s, vh = np.linalg.svd(P[:,:3])
+  # R = u @ vh
 
-  if np.linalg.det(R) < 0:
-    R *= -1
+  # if np.linalg.det(R) < 0:
+  #   R *= -1
 
-  _, _, vh = np.linalg.svd(P)
-  C = np.copy(vh[-1,:])
+  # _, _, vh = np.linalg.svd(P)
+  # C = np.copy(vh[-1,:])
+  #
+  # t = -R @ (C[:3] / C[3])
 
-  t = -R @ (C[:3] / C[3])
-
-  return R, t
+  # return R, t
+  return 0
 
 def TriangulateImage(K, image_name, images, registered_images, matches):
 
