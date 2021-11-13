@@ -29,10 +29,9 @@ def EstimateEssentialMatrix(K, im1, im2, matches):
     # Add the constraints
     p_im1 = normalized_kps1[:, matches[i][0]]
     p_im2 = normalized_kps2[:, matches[i][1]]
-    cur_constraint = np.array([p_im2[0]*p_im1[0], p_im2[1]*p_im1[0], p_im2[2]*p_im1[0],
-                               p_im2[0]*p_im1[1], p_im2[1]*p_im1[1], p_im2[2]*p_im1[1],
-                               p_im2[0]*p_im1[2], p_im2[1]*p_im1[2], p_im2[2]*p_im1[2]])
-    constraint_matrix[i] = cur_constraint
+    constraint_matrix[i] = np.array([p_im1[0]*p_im2[0], p_im1[1]*p_im2[0], p_im1[2]*p_im2[0],
+                               p_im1[0]*p_im2[1], p_im1[1]*p_im2[1], p_im1[2]*p_im2[1],
+                               p_im1[0]*p_im2[2], p_im1[1]*p_im2[2], p_im1[2]*p_im2[2]])
 
   # Solve for the nullspace of the constraint matrix
   _, _, vh = np.linalg.svd(constraint_matrix)
@@ -48,7 +47,7 @@ def EstimateEssentialMatrix(K, im1, im2, matches):
   # Since E is up to scale, we can choose the two equal singluar values arbitrarily
   U_, D_, V_ = np.linalg.svd(E_hat)
   SingularValues = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 0]])
-  E = U_ @ np.diag(D_) @ SingularValues @ V_
+  E = U_ @ SingularValues @ V_
 
   # This is just a quick test that should tell you if your estimated matrix is not correct
   # It might fail if you estimated E in the other direction (i.e. kp2' * E * kp1)
@@ -56,7 +55,7 @@ def EstimateEssentialMatrix(K, im1, im2, matches):
   for i in range(matches.shape[0]):
     kp1 = normalized_kps1[:, matches[i,0]]
     kp2 = normalized_kps2[:, matches[i,1]]
-    assert(abs(kp1.transpose() @ E @ kp2) < 0.01)
+    assert(abs(kp2.transpose() @ E @ kp1) < 0.01)
 
   return E
 
@@ -142,9 +141,16 @@ def TriangulatePoints(K, im1, im2, matches):
   # TODO
   # Filter points behind the cameras by transforming them into each camera space and checking the depth (Z)
   # Make sure to also remove the corresponding rows in `im1_corrs` and `im2_corrs`
-  # points3D =
-  # im1_corrs =
-  # im2_corrs =
+  # cam1_points3d = (P1 @ np.hstack((points3D, np.ones((points3D.shape[0], 1)))).T).T
+  # cam2_points3d = (P2 @ np.hstack((points3D, np.ones((points3D.shape[0], 1)))).T).T
+  cam1_points3d = (R1 @ points3D.T).T + t1 # Is this direction of computation correct?
+  cam2_points3d = points3D @ R2 + t2
+  im1_mask = cam1_points3d[:,2] >= 0
+  im2_mask = cam2_points3d[:,2] >= 0
+  mask = im1_mask & im2_mask
+  points3D = points3D[mask]
+  im1_corrs = im1_corrs[mask]
+  im2_corrs = im2_corrs[mask]
 
   return points3D, im1_corrs, im2_corrs
 
@@ -154,47 +160,56 @@ def EstimateImagePose(points2D, points3D, K):
   # We use points in the normalized image plane.
   # This removes the 'K' factor from the projection matrix.
   # We don't normalize the 3D points here to keep the code simpler.
-  # normalized_points2D =
-
-  # constraint_matrix = BuildProjectionConstraintMatrix(normalized_points2D, points3D)
+  normalized_points2D = (np.linalg.inv(K) @ np.hstack((points2D, np.ones((points2D.shape[0], 1)))).T).T
+  constraint_matrix = BuildProjectionConstraintMatrix(normalized_points2D, points3D)
 
   # We don't use optimization here since we would need to make sure to only optimize on the se(3) manifold
   # (the manifold of proper 3D poses). This is a bit too complicated right now.
   # Just DLT should give good enough results for this dataset.
 
   # Solve for the nullspace
-  # _, _, vh = np.linalg.svd(constraint_matrix)
-  # P_vec = vh[-1,:]
-  # P = np.reshape(P_vec, (3, 4), order='C')
+  _, _, vh = np.linalg.svd(constraint_matrix)
+  P_vec = vh[-1,:]
+  P = np.reshape(P_vec, (3, 4), order='C')
 
   # Make sure we have a proper rotation
-  # u, s, vh = np.linalg.svd(P[:,:3])
-  # R = u @ vh
+  u, s, vh = np.linalg.svd(P[:,:3])
+  R = u @ vh
 
-  # if np.linalg.det(R) < 0:
-  #   R *= -1
+  if np.linalg.det(R) < 0:
+    R *= -1
 
-  # _, _, vh = np.linalg.svd(P)
-  # C = np.copy(vh[-1,:])
-  #
-  # t = -R @ (C[:3] / C[3])
+  _, _, vh = np.linalg.svd(P)
+  C = np.copy(vh[-1,:])
 
-  # return R, t
-  return 0
+  t = -R @ (C[:3] / C[3])
+
+  return R, t
 
 def TriangulateImage(K, image_name, images, registered_images, matches):
 
   # TODO 
   # Loop over all registered images and triangulate new points with the new image.
   # Make sure to keep track of all new 2D-3D correspondences, also for the registered images
-
   image = images[image_name]
-  points3D = np.zeros((0,3))
+  points3D = []
+
   # You can save the correspondences for each image in a dict and refer to the `local` new point indices here.
   # Afterwards you just add the index offset before adding the correspondences to the images.
   corrs = {}
 
-
+  for idx, cur_image in enumerate(registered_images):
+    e_matches = GetPairMatches(image_name, cur_image, matches)
+    next_cur_points3D = np.zeros((0,3))
+    cur_points3D, cur_im1_corrs, cur_im2_corrs = TriangulatePoints(K, image, images[cur_image], e_matches)
+    next_cur_points3D = np.vstack((next_cur_points3D, cur_points3D))
+    points3D.append(next_cur_points3D)
+    if not cur_image in corrs:
+      corrs[cur_image] = []
+    if not image_name in corrs:
+      corrs[image_name] = []
+    corrs[image_name].append((cur_im1_corrs, idx))
+    corrs[cur_image].append((cur_im2_corrs, idx))
 
   return points3D, corrs
-  
+

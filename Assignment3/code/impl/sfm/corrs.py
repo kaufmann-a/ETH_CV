@@ -39,9 +39,13 @@ def UpdateReconstructionState(new_points3D, corrs, points3D, images):
   # TODO
   # Add the new points to the set of reconstruction points and add the correspondences to the images.
   # Be careful to update the point indices to the global indices in the `points3D` array.
-  points3D = np.append(points3D, new_points3D, 0)
-
-  for im_name in corrs:
-    images[im_name].Add3DCorrs(...)
+  for idx, cur_new_points3D in enumerate(new_points3D):
+    first_global_idx = len(points3D)
+    new_global_idxs = np.arange(first_global_idx, first_global_idx + len(cur_new_points3D))
+    points3D = np.vstack((points3D, new_points3D[idx]))
+    for cur_image in corrs:
+      for cur_corrs in corrs[cur_image]:
+        if cur_corrs[1] == idx:
+          images[cur_image].Add3DCorrs(kp_idxs=cur_corrs[0], p3D_idxs=new_global_idxs)
 
   return points3D, images
