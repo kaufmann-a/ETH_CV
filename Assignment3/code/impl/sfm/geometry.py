@@ -141,12 +141,10 @@ def TriangulatePoints(K, im1, im2, matches):
   # TODO
   # Filter points behind the cameras by transforming them into each camera space and checking the depth (Z)
   # Make sure to also remove the corresponding rows in `im1_corrs` and `im2_corrs`
-  # cam1_points3d = (P1 @ np.hstack((points3D, np.ones((points3D.shape[0], 1)))).T).T
-  # cam2_points3d = (P2 @ np.hstack((points3D, np.ones((points3D.shape[0], 1)))).T).T
-  cam1_points3d = (R1 @ points3D.T).T + t1 # Is this direction of computation correct?
+  cam1_points3d = (R1 @ points3D.T).T + t1
   cam2_points3d = points3D @ R2 + t2
-  im1_mask = cam1_points3d[:,2] >= 0
-  im2_mask = cam2_points3d[:,2] >= 0
+  im1_mask = cam1_points3d[:, 2] >= 0
+  im2_mask = cam2_points3d[:, 2] >= 0
   mask = im1_mask & im2_mask
   points3D = points3D[mask]
   im1_corrs = im1_corrs[mask]
