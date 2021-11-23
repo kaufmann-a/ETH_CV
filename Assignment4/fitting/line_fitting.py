@@ -6,26 +6,37 @@ np.random.seed(0)
 random.seed(0)
 
 def least_square(x,y):
-	# TODO
 	# return the least-squares solution
 	# you can use np.linalg.lstsq
+	A = np.vstack([x, np.ones(len(x))]).T
+	k, b = np.linalg.lstsq(A, y, rcond=None)[0]
 	return k, b
 
 def num_inlier(x,y,k,b,n_samples,thres_dist):
-	# TODO
 	# compute the number of inliers and a mask that denotes the indices of inliers
-	num = 0
-	mask = np.zeros(x.shape, dtype=bool)
-
+	mask = abs(np.vstack([x, y, np.ones(n_samples)]).T @ np.array([k, -1, b])) / np.sqrt(k * k + 1) < thres_dist
+	num = np.count_nonzero(mask)
 	return num, mask
 
 def ransac(x,y,iter,n_samples,thres_dist,num_subset):
-	# TODO
 	# ransac
 	k_ransac = None
 	b_ransac = None
 	inlier_mask = None
 	best_inliers = 0
+
+	for idx in range(iter):
+		cur_element_idcs = np.rint((x.size-1) * np.random.sample(size=num_subset)).astype(int)
+		cur_x = np.take(x, cur_element_idcs)
+		cur_y = np.take(y, cur_element_idcs)
+		cur_A = np.vstack([cur_x, np.ones(len(cur_x))]).T
+		cur_k, cur_b = np.linalg.lstsq(cur_A, cur_y, rcond=None)[0]
+		num, cur_mask = num_inlier(x, y, cur_k, cur_b, n_samples, thres_dist)
+		if num > best_inliers:
+			best_inliers = np.count_nonzero(cur_mask)
+			k_ransac = cur_k
+			b_ransac = cur_b
+			inlier_mask = cur_mask
 
 	return k_ransac, b_ransac, inlier_mask
 
