@@ -55,7 +55,7 @@ torch.cuda.manual_seed(args.seed)
 # create logger for mode "train" and "testall"
 if args.mode == "train":
     if not os.path.isdir(args.logdir):
-        os.mkdir(args.logdir)
+        os.makedirs(args.logdir)
 
     current_time_str = str(datetime.datetime.now().strftime('%Y%m%d_%H%M%S'))
     print("current time", current_time_str)
