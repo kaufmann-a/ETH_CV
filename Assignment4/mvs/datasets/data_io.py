@@ -5,10 +5,16 @@ from PIL import Image
 
 def read_cam_file(filename):
     # TODO
+    intrinsics = 0 #TODO Delete
+    extrinsics = 0 #TODO Delete
+    depth_min = 0 #TODO Delete
+    depth_max = 0 #TODO Delete
+
     return intrinsics, extrinsics, depth_min, depth_max
 
 def read_img(filename):
-    # TODO
+
+    np_img = None #TODO Delete
     return np_img
 
 def read_depth(filename):

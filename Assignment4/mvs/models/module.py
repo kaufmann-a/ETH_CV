@@ -10,6 +10,7 @@ class FeatureNet(nn.Module):
 
     def forward(self, x):
         # x: [B,3,H,W]
+        x = None #TODO Delete
         # TODO
 
 
@@ -21,6 +22,7 @@ class SimlarityRegNet(nn.Module):
     def forward(self, x):
         # x: [B,G,D,H,W]
         # out: [B,D,H,W]
+        x = None #TODO Delete
         # TODO
 
 
@@ -46,23 +48,26 @@ def warping(src_fea, src_proj, ref_proj, depth_values):
 
     # get warped_src_fea with bilinear interpolation (use 'grid_sample' function from pytorch)
     # TODO
-
+    warped_src_fea = None #TODO Delete
     return warped_src_fea
 
 def group_wise_correlation(ref_fea, warped_src_fea, G):
     # ref_fea: [B,C,H,W]
     # warped_src_fea: [B,C,D,H,W]
     # out: [B,G,D,H,W]
+    ref_fea = None # TODO Delete
     # TODO
 
 
 def depth_regression(p, depth_values):
     # p: probability volume [B, D, H, W]
     # depth_values: discrete depth values [B, D]
+    p = None # TODO Delete
     # TODO
 
 def mvs_loss(depth_est, depth_gt, mask):
     # depth_est: [B,1,H,W]
     # depth_gt: [B,1,H,W]
     # mask: [B,1,H,W]
+    depth_est = None # TODO Delete
     # TODO
