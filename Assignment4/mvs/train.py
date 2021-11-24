@@ -20,10 +20,10 @@ parser.add_argument('--mode', default='train', help='train or test', choices=['t
 parser.add_argument('--model', default='net', help='select model')
 
 parser.add_argument('--dataset', default='dtu', help='select dataset')
-parser.add_argument('--trainpath', help='train datapath')
+parser.add_argument('--trainpath', default='./dtu_dataset', help='train datapath')
 parser.add_argument('--testpath', help='test datapath')
-parser.add_argument('--trainlist', help='train list')
-parser.add_argument('--testlist', help='test list')
+parser.add_argument('--trainlist', default='lists/dtu/train.txt', help='train list')
+parser.add_argument('--testlist', default='lists/dtu/val.txt', help='test list')
 
 parser.add_argument('--epochs', type=int, default=16, help='number of epochs to train')
 parser.add_argument('--lr', type=float, default=0.001, help='learning rate')

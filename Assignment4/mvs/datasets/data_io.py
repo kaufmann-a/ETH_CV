@@ -4,18 +4,30 @@ import sys
 from PIL import Image
 
 def read_cam_file(filename):
-    # TODO
-    intrinsics = 0 #TODO Delete
-    extrinsics = 0 #TODO Delete
-    depth_min = 0 #TODO Delete
-    depth_max = 0 #TODO Delete
+    intrinsics = np.zeros((3, 3))
+    extrinsics = np.zeros((4, 4))
+    depth_min = 0
+    depth_max = 0
 
+    with open(filename, 'r') as f:
+        f.readline() #Discard as just title extrinsic
+        for line in range(4):
+            extrinsics[line] = [float(i) for i in f.readline().split(" ") if i.strip()]
+        f.readline() # Empty line
+        f.readline() # Intrinsic title
+        for line in range(3):
+            intrinsics[line] = [float(i) for i in f.readline().split(" ") if i.strip()]
+        f.readline()
+        depth_params = [float(i) for i in f.readline().split(" ")]
+        depth_min = depth_params[0]
+        depth_max = depth_params[1]
     return intrinsics, extrinsics, depth_min, depth_max
 
 def read_img(filename):
-
-    np_img = None #TODO Delete
-    return np_img
+    img = Image.open(filename)
+    np_image = np.asarray(img).astype('float32')
+    np_image /= 255.0
+    return np_image
 
 def read_depth(filename):
     # read pfm depth file
