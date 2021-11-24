@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+import torchvision.transforms.functional as TF
 
 class FeatureNet(nn.Module):
     def __init__(self):
@@ -45,20 +45,22 @@ class FeatureNet(nn.Module):
 class SimlarityRegNet(nn.Module):
     def __init__(self, G):
         super(SimlarityRegNet, self).__init__()
-        self.C_0 = nn.Conv2d(in_channels=G, out_channels=8, kernel_size=(3, 3), stride=1, padding=1)
-        self.C_0_r = nn.ReLU(inplace=True)
-        self.C_1 = nn.Conv2d(in_channels=8, out_channels=16, kernel_size=(3, 3), stride=2, padding=1)
-        self.C_1_r = nn.ReLU(inplace=True)
-        self.C_2 = nn.Conv2d(in_channels=16, out_channels=32, kernel_size=(3, 3), stride=2, padding=1)
-        self.C_2_r = nn.ReLU(inplace=True)
-        self.C_3 = nn.ConvTranspose2d(in_channels=32, out_channels=16, kernel_size=(3, 3), stride=2, padding=1)
-        self.C_4 = nn.ConvTranspose2d(in_channels=32, out_channels=8, kernel_size=(3, 3), stride=2, padding=1)
-        self.S_ = nn.Conv2d(in_channels=16, out_channels=1, kernel_size=(3, 3), stride=1)
+        self.C_0 = nn.Conv2d(in_channels=G, out_channels=8, kernel_size=(3, 3), stride=1, padding=1).double()
+        self.C_0_r = nn.ReLU(inplace=True).double()
+        self.C_1 = nn.Conv2d(in_channels=8, out_channels=16, kernel_size=(3, 3), stride=2, padding=1).double()
+        self.C_1_r = nn.ReLU(inplace=True).double()
+        self.C_2 = nn.Conv2d(in_channels=16, out_channels=32, kernel_size=(3, 3), stride=2, padding=1).double()
+        self.C_2_r = nn.ReLU(inplace=True).double()
+        self.C_3 = nn.ConvTranspose2d(in_channels=32, out_channels=16, kernel_size=(3, 3), stride=2, padding=1, output_padding=1).double()
+        self.C_4 = nn.ConvTranspose2d(in_channels=32, out_channels=8, kernel_size=(3, 3), stride=2, padding=1, output_padding=1).double()
+        self.S_ = nn.Conv2d(in_channels=16, out_channels=1, kernel_size=(3, 3), stride=1, padding=1).double()
 
 
     def forward(self, x):
         # x: [B,G,D,H,W]
         # out: [B,D,H,W]
+        B, G, D, H, W = x.shape
+        x = x.view(B, G, D * H, W)
         skip_connections = []
 
         x = self.C_0(x)
@@ -74,12 +76,13 @@ class SimlarityRegNet(nn.Module):
 
         x = self.C_3(x)
 
+
         inp_C4 = torch.cat((x, skip_connections[1]), dim=1)
         x = self.C_4(inp_C4)
 
         inp_S_ = torch.cat((x, skip_connections[0]), dim=1)
         x = self.S_(inp_S_)
-
+        x = x.view(B, D, H, W)
         return x
 
 
@@ -138,16 +141,16 @@ def group_wise_correlation(ref_fea, warped_src_fea, G):
     out = (warped_src_fea_v * ref_fea_v).mean(2)
     return out
 
-
 def depth_regression(p, depth_values):
     # p: probability volume [B, D, H, W]
     # depth_values: discrete depth values [B, D]
-    p = None # TODO Delete
-    # TODO
+
+    return torch.sum(p * depth_values.view(depth_values.shape[0], depth_values.shape[1], 1, 1), dim=1)
+
 
 def mvs_loss(depth_est, depth_gt, mask):
     # depth_est: [B,1,H,W]
     # depth_gt: [B,1,H,W]
     # mask: [B,1,H,W]
-    depth_est = None # TODO Delete
-    # TODO
+    return F.smooth_l1_loss(depth_est * mask, depth_gt * mask, reduction="mean")
+
