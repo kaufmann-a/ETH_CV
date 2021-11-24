@@ -1,0 +1,5 @@
+torchvision~=0.5.0
+numpy~=1.19.5
+plyfile~=0.7.4
+pillow~=8.3.2
+open3d~=0.13.0
