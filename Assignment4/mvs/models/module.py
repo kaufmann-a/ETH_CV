@@ -45,13 +45,42 @@ class FeatureNet(nn.Module):
 class SimlarityRegNet(nn.Module):
     def __init__(self, G):
         super(SimlarityRegNet, self).__init__()
-        # TODO
+        self.C_0 = nn.Conv2d(in_channels=G, out_channels=8, kernel_size=(3, 3), stride=1, padding=1)
+        self.C_0_r = nn.ReLU(inplace=True)
+        self.C_1 = nn.Conv2d(in_channels=8, out_channels=16, kernel_size=(3, 3), stride=2, padding=1)
+        self.C_1_r = nn.ReLU(inplace=True)
+        self.C_2 = nn.Conv2d(in_channels=16, out_channels=32, kernel_size=(3, 3), stride=2, padding=1)
+        self.C_2_r = nn.ReLU(inplace=True)
+        self.C_3 = nn.ConvTranspose2d(in_channels=32, out_channels=16, kernel_size=(3, 3), stride=2, padding=1)
+        self.C_4 = nn.ConvTranspose2d(in_channels=32, out_channels=8, kernel_size=(3, 3), stride=2, padding=1)
+        self.S_ = nn.Conv2d(in_channels=16, out_channels=1, kernel_size=(3, 3), stride=1)
+
 
     def forward(self, x):
         # x: [B,G,D,H,W]
         # out: [B,D,H,W]
-        x = None #TODO Delete
-        # TODO
+        skip_connections = []
+
+        x = self.C_0(x)
+        x = self.C_0_r(x)
+        skip_connections.append(x)
+
+        x = self.C_1(x)
+        x = self.C_1_r(x)
+        skip_connections.append(x)
+
+        x = self.C_2(x)
+        x = self.C_2_r(x)
+
+        x = self.C_3(x)
+
+        inp_C4 = torch.cat((x, skip_connections[1]), dim=1)
+        x = self.C_4(inp_C4)
+
+        inp_S_ = torch.cat((x, skip_connections[0]), dim=1)
+        x = self.S_(inp_S_)
+
+        return x
 
 
 def warping(src_fea, src_proj, ref_proj, depth_values):
