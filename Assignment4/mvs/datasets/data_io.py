@@ -25,7 +25,7 @@ def read_cam_file(filename):
 
 def read_img(filename):
     img = Image.open(filename)
-    np_image = np.asarray(img).astype('float32')
+    np_image = np.asarray(img).astype('float64')
     np_image /= 255.0
     return np_image
 
