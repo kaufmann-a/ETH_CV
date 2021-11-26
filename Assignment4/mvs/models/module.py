@@ -7,31 +7,31 @@ class FeatureNet(nn.Module):
     def __init__(self):
         super(FeatureNet, self).__init__()
         self.layers = nn.Sequential(
-            nn.Conv2d(in_channels=3, out_channels=8, kernel_size=(3, 3), stride=1, padding=1).double(),
-            nn.BatchNorm2d(num_features=8).double(),
-            nn.ReLU(inplace=True).double(),
-            nn.Conv2d(in_channels=8, out_channels=8, kernel_size=(3, 3), stride=1, padding=1).double(),
-            nn.BatchNorm2d(num_features=8).double(),
-            nn.ReLU(inplace=True).double(),
-            nn.Conv2d(in_channels=8, out_channels=16, kernel_size=(5, 5), stride=2, padding=2).double(),
-            nn.BatchNorm2d(num_features=16).double(),
-            nn.ReLU(inplace=True).double(),
-            nn.Conv2d(in_channels=16, out_channels=16, kernel_size=(3, 3), stride=1, padding=1).double(),
-            nn.BatchNorm2d(num_features=16).double(),
-            nn.ReLU(inplace=True).double(),
-            nn.Conv2d(in_channels=16, out_channels=16, kernel_size=(3, 3), stride=1, padding=1).double(),
-            nn.BatchNorm2d(num_features=16).double(),
-            nn.ReLU(inplace=True).double(),
-            nn.Conv2d(in_channels=16, out_channels=32, kernel_size=(5, 5), stride=2, padding=2).double(),
-            nn.BatchNorm2d(num_features=32).double(),
-            nn.ReLU(inplace=True).double(),
-            nn.Conv2d(in_channels=32, out_channels=32, kernel_size=(3, 3), stride=1, padding=1).double(),
-            nn.BatchNorm2d(num_features=32).double(),
-            nn.ReLU(inplace=True).double(),
-            nn.Conv2d(in_channels=32, out_channels=32, kernel_size=(3, 3), stride=1, padding=1).double(),
-            nn.BatchNorm2d(num_features=32).double(),
-            nn.ReLU(inplace=True).double(),
-            nn.Conv2d(in_channels=32, out_channels=32, kernel_size=(3,3), stride=1, padding=1).double()
+            nn.Conv2d(in_channels=3, out_channels=8, kernel_size=(3, 3), stride=1, padding=1),
+            nn.BatchNorm2d(num_features=8),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=8, out_channels=8, kernel_size=(3, 3), stride=1, padding=1),
+            nn.BatchNorm2d(num_features=8),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=8, out_channels=16, kernel_size=(5, 5), stride=2, padding=2),
+            nn.BatchNorm2d(num_features=16),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=16, out_channels=16, kernel_size=(3, 3), stride=1, padding=1),
+            nn.BatchNorm2d(num_features=16),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=16, out_channels=16, kernel_size=(3, 3), stride=1, padding=1),
+            nn.BatchNorm2d(num_features=16),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=16, out_channels=32, kernel_size=(5, 5), stride=2, padding=2),
+            nn.BatchNorm2d(num_features=32),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=32, out_channels=32, kernel_size=(3, 3), stride=1, padding=1),
+            nn.BatchNorm2d(num_features=32),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=32, out_channels=32, kernel_size=(3, 3), stride=1, padding=1),
+            nn.BatchNorm2d(num_features=32),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=32, out_channels=32, kernel_size=(3,3), stride=1, padding=1)
         )
 
         # TODO
@@ -45,15 +45,15 @@ class FeatureNet(nn.Module):
 class SimlarityRegNet(nn.Module):
     def __init__(self, G):
         super(SimlarityRegNet, self).__init__()
-        self.C_0 = nn.Conv2d(in_channels=G, out_channels=8, kernel_size=(3, 3), stride=1, padding=1).double()
-        self.C_0_r = nn.ReLU(inplace=True).double()
-        self.C_1 = nn.Conv2d(in_channels=8, out_channels=16, kernel_size=(3, 3), stride=2, padding=1).double()
-        self.C_1_r = nn.ReLU(inplace=True).double()
-        self.C_2 = nn.Conv2d(in_channels=16, out_channels=32, kernel_size=(3, 3), stride=2, padding=1).double()
-        self.C_2_r = nn.ReLU(inplace=True).double()
-        self.C_3 = nn.ConvTranspose2d(in_channels=32, out_channels=16, kernel_size=(3, 3), stride=2, padding=1, output_padding=1).double()
-        self.C_4 = nn.ConvTranspose2d(in_channels=32, out_channels=8, kernel_size=(3, 3), stride=2, padding=1, output_padding=1).double()
-        self.S_ = nn.Conv2d(in_channels=16, out_channels=1, kernel_size=(3, 3), stride=1, padding=1).double()
+        self.C_0 = nn.Conv2d(in_channels=G, out_channels=8, kernel_size=(3, 3), stride=1, padding=1)
+        self.C_0_r = nn.ReLU(inplace=True)
+        self.C_1 = nn.Conv2d(in_channels=8, out_channels=16, kernel_size=(3, 3), stride=2, padding=1)
+        self.C_1_r = nn.ReLU(inplace=True)
+        self.C_2 = nn.Conv2d(in_channels=16, out_channels=32, kernel_size=(3, 3), stride=2, padding=1)
+        self.C_2_r = nn.ReLU(inplace=True)
+        self.C_3 = nn.ConvTranspose2d(in_channels=32, out_channels=16, kernel_size=(3, 3), stride=2, padding=1, output_padding=1)
+        self.C_4 = nn.ConvTranspose2d(in_channels=32, out_channels=8, kernel_size=(3, 3), stride=2, padding=1, output_padding=1)
+        self.S_ = nn.Conv2d(in_channels=16, out_channels=1, kernel_size=(3, 3), stride=1, padding=1)
 
 
     def forward(self, x):
@@ -105,7 +105,7 @@ def warping(src_fea, src_proj, ref_proj, depth_values):
         y, x = y.contiguous(), x.contiguous()
         y, x = y.view(H * W), x.view(H * W)
         xy_hom = torch.stack((x, y, torch.ones_like(x)))
-        xy_hom = torch.unsqueeze(xy_hom, 0).repeat(B, 1, 1).double()
+        xy_hom = torch.unsqueeze(xy_hom, 0).repeat(B, 1, 1)
         xy_hom_rot = torch.matmul(rot, xy_hom)
         rot_depth_xy_hom = xy_hom_rot.unsqueeze(2).repeat(1, 1, D, 1) * torch.unsqueeze(depth_values.view(B, 1, D), 3).repeat(1, 1, 1, H*W)
         p_xy_hom = rot_depth_xy_hom + trans.view(B, 3, 1, 1)
@@ -121,7 +121,7 @@ def warping(src_fea, src_proj, ref_proj, depth_values):
 
     # get warped_src_fea with bilinear interpolation (use 'grid_sample' function from pytorch)
     warped_src_fea = F.grid_sample(
-        src_fea.double(),
+        src_fea,
         p_xy_final.view(B, D, H * W, 2),
         align_corners=True
     ).view(B, C, D, H, W)

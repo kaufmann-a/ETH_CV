@@ -21,11 +21,11 @@ def read_cam_file(filename):
         depth_params = [float(i) for i in f.readline().split(" ")]
         depth_min = depth_params[0]
         depth_max = depth_params[1]
-    return intrinsics, extrinsics, depth_min, depth_max
+    return intrinsics.astype('float32'), extrinsics.astype('float32'), depth_min, depth_max
 
 def read_img(filename):
     img = Image.open(filename)
-    np_image = np.asarray(img).astype('float64')
+    np_image = np.asarray(img).astype('float32')
     np_image /= 255.0
     return np_image
 
