@@ -72,7 +72,7 @@ def save_depth():
 
     # load checkpoint file specified by args.loadckpt
     print("loading model {}".format(args.loadckpt))
-    state_dict = torch.load(args.loadckpt)
+    state_dict = torch.load(args.loadckpt, map_location=torch.device('cpu'))
     model.load_state_dict(state_dict['model'])
     model.eval()
 
