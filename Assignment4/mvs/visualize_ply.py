@@ -14,7 +14,7 @@ if __name__ == "__main__":
                         help='identify dataset')
     parser.add_argument('--use_viewpoint', default=False, action='store_true',
                         help='use precalculated viewpoint')
-    parser.add_argument('--save_viewpoint', default=False, action='store_true',
+    parser.add_argument('--save_viewpoint', default=True, action='store_true',
                         help='save this viewpoint')
 
     args = parser.parse_args()
