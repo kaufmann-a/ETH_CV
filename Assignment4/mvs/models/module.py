@@ -109,10 +109,6 @@ def warping(src_fea, src_proj, ref_proj, depth_values):
         xy_hom_rot = torch.matmul(rot, xy_hom)
         rot_depth_xy_hom = xy_hom_rot.unsqueeze(2).repeat(1, 1, D, 1) * torch.unsqueeze(depth_values.view(B, 1, D), 3).repeat(1, 1, 1, H*W)
         p_xy_hom = rot_depth_xy_hom + trans.view(B, 3, 1, 1)
-        negative_depth_mask = p_xy_hom[:, 2:] <= 1e-3
-        p_xy_hom[:, 0:1][negative_depth_mask] = float(W)
-        p_xy_hom[:, 1:2][negative_depth_mask] = float(H)
-        p_xy_hom[:, 2:3][negative_depth_mask] = 1.0
         p_xy = p_xy_hom[:, :2, :, :] / p_xy_hom[:, 2:3, :, :]
         p_x_normalized = p_xy[:, 0, :, :] / ((W - 1) / 2) - 1
         p_y_normalized = p_xy[:, 1, :, :] / ((H - 1) / 2) - 1
