@@ -41,13 +41,17 @@ def grid_points(img, nPointsX, nPointsY, border):
     :param border: leave border pixels in each image dimension
     :return: vPoints: 2D grid point coordinates, numpy array, [nPointsX*nPointsY, 2]
     """
-    vPoints = None  # numpy array, [nPointsX*nPointsY, 2]
+    #x_patch_size = np.floor((img.shape[1]-2*border)/nPointsX)
+    #y_patch_size = np.floor((img.shape[0]-2*border)/nPointsY)
+    #x_points = np.arange(border, border+x_patch_size*nPointsX, x_patch_size) + ((x_patch_size-1)/2)
+    #y_points = np.arange(border, border+y_patch_size*nPointsY, y_patch_size) + ((y_patch_size-1)/2)
+    # numpy array, [nPointsX*nPointsY, 2]
+    x_points = np.rint(np.linspace(border, img.shape[1] - border - 1, num=nPointsX))
+    y_points = np.rint(np.linspace(border, img.shape[0] - border - 1, num=nPointsY))
 
-    # todo
-    ...
-
-
-    return vPoints
+    grid_x, grid_y = np.meshgrid(x_points, y_points)
+    vPoints = np.stack((grid_x.flatten(), grid_y.flatten()), axis=1)
+    return vPoints.astype(int)
 
 
 
@@ -56,15 +60,31 @@ def descriptors_hog(img, vPoints, cellWidth, cellHeight):
     w = cellWidth
     h = cellHeight
 
+    #we have a 4x4 block of cells
+    n_cells_x = 4
+    n_cells_y = 4
+
     grad_x = cv2.Sobel(img, cv2.CV_16S, dx=1, dy=0, ksize=1)
     grad_y = cv2.Sobel(img, cv2.CV_16S, dx=0, dy=1, ksize=1)
+    orientation = np.arctan2(grad_y, grad_x)
 
     descriptors = []  # list of descriptors for the current image, each entry is one 128-d vector for a grid point
     for i in range(len(vPoints)):
-        # todo
-        ...
+        x, y = vPoints[i][0], vPoints[i][1]
 
+        #x, y now is in the middle of the 4x4 cells block, we want to iterate over all cells
+        #we start with the upper left cell and iterate over the cells row by row
+        ul_corner = (vPoints[i] - [n_cells_x/2*cellWidth, n_cells_y/2*cellHeight]).astype(int)
+        hist = []
+        for cell_x in range(n_cells_x):
+            for cell_y in range(n_cells_y):
 
+                #we now get the image pixels for the current cell
+                cur_cell = orientation[ul_corner[0]+cell_x*cellWidth:ul_corner[0]+cell_x*cellWidth+cellWidth,
+                           ul_corner[0]+cell_y*cellHeight:ul_corner[0]+cell_y*cellHeight+cellHeight]
+                cur_hist = np.histogram(cur_cell, bins=nBins)
+                hist = np.append(hist, cur_hist[0])
+        descriptors.append(hist)
     descriptors = np.asarray(descriptors) # [nPointsX*nPointsY, 128], descriptor for the current image (100 grid points)
     return descriptors
 
@@ -98,6 +118,8 @@ def create_codebook(nameDirPos, nameDirNeg, k, numiter):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # [h, w]
 
         # Collect local feature points for each image, and compute a descriptor for each local feature point
+        vPoints = grid_points(img, nPointsX=nPointsX, nPointsY=nPointsY, border=border)
+        descriptors = descriptors_hog(img, vPoints, cellWidth, cellHeight)
         # todo
         ...
 
@@ -193,8 +215,8 @@ if __name__ == '__main__':
     nameDirNeg_test = 'data/data_bow/cars-testing-neg'
 
 
-    k = None  # todo
-    numiter = None  # todo
+    k = 4  # todo
+    numiter = 100  # todo
 
     print('creating codebook ...')
     vCenters = create_codebook(nameDirPos_train, nameDirNeg_train, k, numiter)
