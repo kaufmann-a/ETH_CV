@@ -4,6 +4,8 @@ import glob
 import os
 from sklearn.cluster import KMeans
 from tqdm import tqdm
+from matplotlib import pyplot as plt
+import datetime
 
 
 def findnn(D1, D2):
@@ -120,8 +122,8 @@ def create_codebook(nameDirPos, nameDirNeg, k, numiter):
         # Collect local feature points for each image, and compute a descriptor for each local feature point
         vPoints = grid_points(img, nPointsX=nPointsX, nPointsY=nPointsY, border=border)
         descriptors = descriptors_hog(img, vPoints, cellWidth, cellHeight)
-        # todo
-        ...
+        vFeatures.append(descriptors)
+
 
 
     vFeatures = np.asarray(vFeatures)  # [n_imgs, n_vPoints, 128]
@@ -142,11 +144,15 @@ def bow_histogram(vFeatures, vCenters):
     :param vCenters: NxD matrix containing N cluster centers of dim. D
     :return: histo: N-dim. numpy vector containing the resulting BoW activation histogram.
     """
-    histo = None
+    histo = np.zeros((vCenters.shape[0],))
 
-    # todo
-    ...
-
+    for feature in vFeatures:
+        distances = []
+        for curCenter in vCenters:
+            dist = feature - curCenter
+            distances.append(np.dot(dist, dist))
+        best_cluster = np.where(distances == np.amin(distances))[0][0] #If a feature has equal min dist to more than one cluster, assign to cluster with lowest index
+        histo[best_cluster] += 1
     return histo
 
 
@@ -174,10 +180,10 @@ def create_bow_histograms(nameDir, vCenters):
         # print('processing image {} ...'.format(i + 1))
         img = cv2.imread(vImgNames[i])  # [172, 208, 3]
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # [h, w]
-
-        # todo
-        ...
-
+        vPoints = grid_points(img, nPointsX=nPointsX, nPointsY=nPointsY, border=border)
+        descriptors = descriptors_hog(img, vPoints, cellWidth, cellHeight)
+        histo = bow_histogram(descriptors, vCenters)
+        vBoW.append(histo)
 
     vBoW = np.asarray(vBoW)  # [n_imgs, k]
     return vBoW
@@ -192,11 +198,11 @@ def bow_recognition_nearest(histogram,vBoWPos,vBoWNeg):
     :return: sLabel: predicted result of the test image, 0(without car)/1(with car)
     """
 
-    DistPos, DistNeg = None, None
-
     # Find the nearest neighbor in the positive and negative sets and decide based on this neighbor
-    # todo
-    ...
+    idx, dist_pos = findnn(histogram, vBoWPos)
+    idx2, dist_neg = findnn(histogram, vBoWNeg)
+
+    DistPos, DistNeg = dist_pos, dist_neg
 
     if (DistPos < DistNeg):
         sLabel = 1
@@ -213,37 +219,51 @@ if __name__ == '__main__':
     nameDirNeg_train = 'data/data_bow/cars-training-neg'
     nameDirPos_test = 'data/data_bow/cars-testing-pos'
     nameDirNeg_test = 'data/data_bow/cars-testing-neg'
+    start = datetime.datetime.now()
+    nr_k = 5
+    numiter = 1000000
+    accuracies_pos = []
+    accuracies_neg = []
+    for k in range(1, nr_k+1):
 
+        print('creating codebook ...')
+        vCenters = create_codebook(nameDirPos_train, nameDirNeg_train, k, numiter)
 
-    k = 4  # todo
-    numiter = 100  # todo
+        print('creating bow histograms (pos) ...')
+        vBoWPos = create_bow_histograms(nameDirPos_train, vCenters)
+        print('creating bow histograms (neg) ...')
+        vBoWNeg = create_bow_histograms(nameDirNeg_train, vCenters)
 
-    print('creating codebook ...')
-    vCenters = create_codebook(nameDirPos_train, nameDirNeg_train, k, numiter)
+        # test pos samples
+        print('creating bow histograms for test set (pos) ...')
+        vBoWPos_test = create_bow_histograms(nameDirPos_test, vCenters)  # [n_imgs, k]
+        result_pos = 0
+        print('testing pos samples ...')
+        for i in range(vBoWPos_test.shape[0]):
+            cur_label = bow_recognition_nearest(vBoWPos_test[i:(i+1)], vBoWPos, vBoWNeg)
+            result_pos = result_pos + cur_label
+        acc_pos = result_pos / vBoWPos_test.shape[0]
+        accuracies_pos.append(acc_pos)
+        print('test pos sample accuracy:', acc_pos)
 
-    print('creating bow histograms (pos) ...')
-    vBoWPos = create_bow_histograms(nameDirPos_train, vCenters)
-    print('creating bow histograms (neg) ...')
-    vBoWNeg = create_bow_histograms(nameDirNeg_train, vCenters)
+        # test neg samples
+        print('creating bow histograms for test set (neg) ...')
+        vBoWNeg_test = create_bow_histograms(nameDirNeg_test, vCenters)  # [n_imgs, k]
+        result_neg = 0
+        print('testing neg samples ...')
+        for i in range(vBoWNeg_test.shape[0]):
+            cur_label = bow_recognition_nearest(vBoWNeg_test[i:(i + 1)], vBoWPos, vBoWNeg)
+            result_neg = result_neg + cur_label
+        acc_neg = 1 - result_neg / vBoWNeg_test.shape[0]
+        accuracies_neg.append(acc_neg)
+        print('test neg sample accuracy:', acc_neg)
 
-    # test pos samples
-    print('creating bow histograms for test set (pos) ...')
-    vBoWPos_test = create_bow_histograms(nameDirPos_test, vCenters)  # [n_imgs, k]
-    result_pos = 0
-    print('testing pos samples ...')
-    for i in range(vBoWPos_test.shape[0]):
-        cur_label = bow_recognition_nearest(vBoWPos_test[i:(i+1)], vBoWPos, vBoWNeg)
-        result_pos = result_pos + cur_label
-    acc_pos = result_pos / vBoWPos_test.shape[0]
-    print('test pos sample accuracy:', acc_pos)
+    end = datetime.datetime.now()
+    duration = end - start
+    print("Duration was: ", str(duration))
 
-    # test neg samples
-    print('creating bow histograms for test set (neg) ...')
-    vBoWNeg_test = create_bow_histograms(nameDirNeg_test, vCenters)  # [n_imgs, k]
-    result_neg = 0
-    print('testing neg samples ...')
-    for i in range(vBoWNeg_test.shape[0]):
-        cur_label = bow_recognition_nearest(vBoWNeg_test[i:(i + 1)], vBoWPos, vBoWNeg)
-        result_neg = result_neg + cur_label
-    acc_neg = 1 - result_neg / vBoWNeg_test.shape[0]
-    print('test neg sample accuracy:', acc_neg)
+    x = np.arange(1, nr_k+1)
+    plt.plot(x, accuracies_pos)
+    plt.plot(x, accuracies_neg)
+    plt.show()
+
