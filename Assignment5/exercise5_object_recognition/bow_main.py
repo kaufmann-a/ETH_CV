@@ -133,7 +133,7 @@ def create_codebook(nameDirPos, nameDirNeg, k, numiter):
 
     # Cluster the features using K-Means
     print('clustering ...')
-    kmeans_res = KMeans(n_clusters=k, max_iter=numiter).fit(vFeatures)
+    kmeans_res = KMeans(n_clusters=k, max_iter=numiter, n_init=10, random_state=0).fit(vFeatures)
     vCenters = kmeans_res.cluster_centers_  # [k, 128]
     return vCenters
 
@@ -220,11 +220,11 @@ if __name__ == '__main__':
     nameDirPos_test = 'data/data_bow/cars-testing-pos'
     nameDirNeg_test = 'data/data_bow/cars-testing-neg'
     start = datetime.datetime.now()
-    nr_k = 5
+    nr_k = 9
     numiter = 1000000
     accuracies_pos = []
     accuracies_neg = []
-    for k in range(1, nr_k+1):
+    for k in range(4, nr_k+1):
 
         print('creating codebook ...')
         vCenters = create_codebook(nameDirPos_train, nameDirNeg_train, k, numiter)
@@ -262,7 +262,7 @@ if __name__ == '__main__':
     duration = end - start
     print("Duration was: ", str(duration))
 
-    x = np.arange(1, nr_k+1)
+    x = np.arange(4, nr_k+1)
     plt.plot(x, accuracies_pos)
     plt.plot(x, accuracies_neg)
     plt.show()
