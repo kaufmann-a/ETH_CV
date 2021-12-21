@@ -40,7 +40,7 @@ if __name__ == "__main__":
         "initial_velocity": (1, 10)
     }
 
-    video_name = "video3.avi"
+    video_name = "video2.avi"
     data_dir = './data/'
     video_path = os.path.join(data_dir, video_name)
     first_frame = 1
