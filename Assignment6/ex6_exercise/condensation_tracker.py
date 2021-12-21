@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import RectangleSelector
 from matplotlib import patches
+import matplotlib
 
 from color_histogram import color_histogram
 from propagate import propagate
@@ -11,6 +12,7 @@ from observe import observe
 from resample import resample
 from estimate import estimate
 
+matplotlib.use("TkAgg")
 
 top_left = []
 bottom_right = []
@@ -57,7 +59,7 @@ def condensation_tracker(video_path, params):
         last_frame = 42
     elif video_name == "video2.avi":
         first_frame = 3
-        last_frame = 40
+        last_frame = 38
     elif video_name == "video3.avi":
         first_frame = 1
         last_frame = 60
@@ -216,16 +218,16 @@ def condensation_tracker(video_path, params):
 
 
 if __name__ == "__main__":
-    video_name = 'video3.avi'
+    video_name = 'video2.avi'
     params = {
         "draw_plots": 1,
         "hist_bin": 16,
         "alpha": 0,
         "sigma_observe": 0.1,
-        "model": 0,
+        "model": 1,
         "num_particles": 300,
-        "sigma_position": 15,
+        "sigma_position": 1,
         "sigma_velocity": 1,
-        "initial_velocity": (1, 10)
+        "initial_velocity": (6, 0)
     }
     condensation_tracker(video_name, params)
